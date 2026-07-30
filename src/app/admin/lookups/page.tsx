@@ -80,6 +80,20 @@ export default function LookupsPage() {
     load();
   }
 
+  async function updateSuperior(id: string, patch: { email?: string; resetPassword?: boolean }) {
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...patch }),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { ok: false as const, error: body.error?.fieldErrors?.email?.[0] ?? body.error ?? "Gagal" };
+    }
+    load();
+    return { ok: true as const, newPassword: body.newPassword as string | null };
+  }
+
   if (!data) return <p className="text-slate-400">Memuatkan...</p>;
 
   return (
@@ -122,14 +136,112 @@ export default function LookupsPage() {
         {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
         <ul className="divide-y divide-slate-100 text-sm">
           {data.superiors.map((s) => (
-            <li key={s.id} className="flex items-center justify-between py-2">
-              <span>{s.name} <span className="text-slate-400">({s.email})</span></span>
-              <button onClick={() => removeSuperior(s.id)} className="text-xs text-red-600 hover:underline">Padam</button>
-            </li>
+            <SuperiorRow
+              key={s.id}
+              superior={s as { id: string; name: string; email: string }}
+              onUpdate={updateSuperior}
+              onRemove={() => removeSuperior(s.id)}
+            />
           ))}
         </ul>
       </section>
     </div>
+  );
+}
+
+function SuperiorRow({
+  superior,
+  onUpdate,
+  onRemove,
+}: {
+  superior: { id: string; name: string; email: string };
+  onUpdate: (
+    id: string,
+    patch: { email?: string; resetPassword?: boolean }
+  ) => Promise<{ ok: true; newPassword: string | null } | { ok: false; error: string }>;
+  onRemove: () => void;
+}) {
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [email, setEmail] = useState(superior.email);
+  const [error, setError] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function saveEmail() {
+    setBusy(true);
+    setError(null);
+    const res = await onUpdate(superior.id, { email });
+    setBusy(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    setEditingEmail(false);
+  }
+
+  async function resetPassword() {
+    setBusy(true);
+    setError(null);
+    const res = await onUpdate(superior.id, { resetPassword: true });
+    setBusy(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    setNewPassword(res.newPassword);
+  }
+
+  return (
+    <li className="py-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex-1">
+          <span className="font-medium">{superior.name}</span>{" "}
+          {editingEmail ? (
+            <span className="inline-flex items-center gap-1">
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input inline-block w-56 py-0.5 text-xs"
+              />
+              <button onClick={saveEmail} disabled={busy} className="text-xs text-blue-700 hover:underline">
+                Simpan
+              </button>
+              <button
+                onClick={() => {
+                  setEditingEmail(false);
+                  setEmail(superior.email);
+                }}
+                className="text-xs text-slate-400 hover:underline"
+              >
+                Batal
+              </button>
+            </span>
+          ) : (
+            <span className="text-slate-400">
+              ({superior.email}){" "}
+              <button onClick={() => setEditingEmail(true)} className="text-blue-700 hover:underline">
+                Tukar
+              </button>
+            </span>
+          )}
+        </div>
+        <div className="flex shrink-0 gap-2">
+          <button onClick={resetPassword} disabled={busy} className="text-xs text-amber-700 hover:underline">
+            Reset Kata Laluan
+          </button>
+          <button onClick={onRemove} className="text-xs text-red-600 hover:underline">
+            Padam
+          </button>
+        </div>
+      </div>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {newPassword && (
+        <p className="mt-1 rounded bg-amber-50 px-2 py-1 text-xs text-amber-800">
+          Kata laluan baharu: <span className="font-mono font-semibold">{newPassword}</span> — salin
+          sekarang, ia tidak akan dipaparkan lagi.
+        </p>
+      )}
+    </li>
   );
 }
 
