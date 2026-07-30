@@ -24,7 +24,7 @@ export default async function SuperiorRatePage({
     <div className="mx-auto max-w-xl space-y-4">
       <div className="card">
         <h1 className="text-lg font-semibold">
-          Penilaian Keberkesanan Latihan
+          Post-Training Effectiveness Evaluation
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           {record.employeeName} — {record.courseTitle}

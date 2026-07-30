@@ -14,12 +14,12 @@ type RecordInfo = {
 };
 
 const scaleQuestions = [
-  { key: "q5Importance", label: "Kepentingan latihan ini kepada tugas anda." },
-  { key: "q6Materials", label: "Keberkesanan bahan yang disampaikan." },
-  { key: "q7Presenter", label: "Keberkesanan penyampaian trainer." },
-  { key: "q8Adequacy", label: "Kecukupan bahan yang disediakan." },
-  { key: "q9Expectation", label: "Latihan ini memenuhi jangkaan saya." },
-  { key: "q10Overall", label: "Penilaian keseluruhan sesi latihan ini." },
+  { key: "q5Importance", label: "The importance of this training to you in carrying out your role and responsibilities." },
+  { key: "q6Materials", label: "Effectiveness of the materials presented in this training session" },
+  { key: "q7Presenter", label: "Effectiveness of the presenter/s in this training session." },
+  { key: "q8Adequacy", label: "The adequacy of the materials that were presented during the session." },
+  { key: "q9Expectation", label: "The training session meets my expectations." },
+  { key: "q10Overall", label: "The overall rating of the training session." },
 ] as const;
 
 export default function RatePage({
@@ -106,7 +106,7 @@ export default function RatePage({
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="card">
-        <h1 className="text-lg font-semibold">Borang Penilaian Latihan</h1>
+        <h1 className="text-lg font-semibold">Training Evaluation Form</h1>
         <p className="mt-1 text-sm text-slate-500">
           {info.employeeName} — {info.courseTitle} ({info.trainerName})
           <br />
@@ -119,7 +119,7 @@ export default function RatePage({
           <h2 className="font-semibold text-blue-700">Part A: Learning Outcome</h2>
           <label className="block">
             <span className="mb-1 block text-sm font-medium">
-              Q1: Apa yang anda pelajari dari kursus ini?
+              Q1: Training content (What have you learned from this course)?
             </span>
             <textarea
               required
@@ -132,7 +132,7 @@ export default function RatePage({
 
           <div>
             <span className="mb-1 block text-sm font-medium">
-              Q2: Berkaitan dengan tugas semasa anda?
+              Q2: Related to current job?
             </span>
             <div className="flex gap-4">
               {(["Yes", "No"] as const).map((v) => (
@@ -159,7 +159,7 @@ export default function RatePage({
 
           <div>
             <span className="mb-1 block text-sm font-medium">
-              Q3: Keberkesanan Latihan?
+              Q3: Training Effectiveness?
             </span>
             <div className="flex gap-4">
               {(["Yes", "No"] as const).map((v) => (
@@ -185,7 +185,7 @@ export default function RatePage({
           </div>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">Q4: Ulasan</span>
+            <span className="mb-1 block text-sm font-medium">Q4: Comment</span>
             <textarea
               rows={2}
               value={q4Comment}

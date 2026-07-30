@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import RatingScale from "@/components/rating-scale";
 
 const questions = [
-  { key: "supQ1", label: "Latihan ini relevan dengan tugas hakiki staf." },
-  { key: "supQ2", label: "Staf menunjukkan peningkatan pengetahuan/kemahiran selepas latihan." },
-  { key: "supQ3", label: "Latihan ini membantu meningkatkan prestasi kerja staf." },
-  { key: "supQ4", label: "Latihan ini memberi impak positif kepada jabatan/cawangan." },
-  { key: "supQ5", label: "Penilaian keseluruhan keberkesanan latihan ini." },
+  { key: "supQ1", label: "The employee is able to apply the acquired knowledge in their work" },
+  { key: "supQ2", label: "Improvement in work performance" },
+  { key: "supQ3", label: "Improvement in skills" },
+  { key: "supQ4", label: "Improvement in productivity" },
+  { key: "supQ5", label: "Overall evaluation" },
 ] as const;
 
 export default function SuperiorRatingForm({ recordId }: { recordId: string }) {
