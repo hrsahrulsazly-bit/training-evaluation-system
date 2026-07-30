@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { formatDate } from "@/lib/dates";
 
 type Record = {
@@ -44,6 +45,18 @@ export default function RecordsTable() {
     navigator.clipboard.writeText(url);
     setCopiedId(rec.id);
     setTimeout(() => setCopiedId(null), 1500);
+  }
+
+  async function deleteRecord(rec: Record) {
+    if (
+      !confirm(
+        `Padam rekod latihan "${rec.courseTitle}" untuk ${rec.employeeName}? Tindakan ini tidak boleh dibatalkan.`
+      )
+    ) {
+      return;
+    }
+    await fetch(`/api/admin/records/${rec.id}`, { method: "DELETE" });
+    load(q);
   }
 
   return (
@@ -120,6 +133,18 @@ export default function RecordsTable() {
                     >
                       PDF
                     </a>
+                    <Link
+                      href={`/admin/records/${r.id}/edit`}
+                      className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => deleteRecord(r)}
+                      className="rounded-md border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                    >
+                      Padam
+                    </button>
                   </div>
                 </td>
               </tr>

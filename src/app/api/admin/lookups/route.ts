@@ -6,7 +6,7 @@ export async function GET() {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  const [branches, courses, trainers, superiors] = await Promise.all([
+  const [branches, courses, trainers, superiors, users] = await Promise.all([
     prisma.branch.findMany({ orderBy: { name: "asc" } }),
     prisma.course.findMany({ orderBy: { title: "asc" } }),
     prisma.trainer.findMany({ orderBy: { name: "asc" } }),
@@ -15,9 +15,14 @@ export async function GET() {
       select: { id: true, name: true, email: true, createdAt: true },
       orderBy: { name: "asc" },
     }),
+    prisma.user.findMany({
+      where: { role: { in: ["SUPERIOR", "ADMIN"] } },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      orderBy: [{ role: "asc" }, { name: "asc" }],
+    }),
   ]);
 
-  return NextResponse.json({ branches, courses, trainers, superiors });
+  return NextResponse.json({ branches, courses, trainers, superiors, users });
 }
 
 export async function POST(req: Request) {

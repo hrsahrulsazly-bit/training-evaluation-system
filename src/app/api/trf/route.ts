@@ -4,7 +4,7 @@ import { trfSchema } from "@/lib/validation";
 
 export async function GET() {
   const superiors = await prisma.user.findMany({
-    where: { role: { in: ["SUPERIOR", "ADMIN"] } },
+    where: { role: "SUPERIOR" },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });

@@ -9,6 +9,7 @@ const schema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(6, "Kata laluan sekurang-kurangnya 6 aksara"),
+  role: z.enum(["SUPERIOR", "ADMIN"]).default("SUPERIOR"),
 });
 
 const patchSchema = z.object({
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { name, email, password } = parsed.data;
+  const { name, email, password, role } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, role: "SUPERIOR" },
+    data: { name, email, passwordHash, role },
   });
 
   return NextResponse.json({ id: user.id }, { status: 201 });
@@ -82,9 +83,18 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const { error } = await requireAdmin();
+  const { error, session } = await requireAdmin();
   if (error) return error;
   const body = await req.json();
-  await prisma.user.delete({ where: { id: body.id as string } });
+  const id = body.id as string;
+
+  if (id === session!.user.id) {
+    return NextResponse.json(
+      { error: "Anda tidak boleh memadam akaun anda sendiri" },
+      { status: 400 }
+    );
+  }
+
+  await prisma.user.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }
