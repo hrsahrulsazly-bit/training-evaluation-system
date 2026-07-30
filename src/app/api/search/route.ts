@@ -14,13 +14,13 @@ export async function GET(req: Request) {
 
   const [requests, records] = await Promise.all([
     prisma.trainingRequest.findMany({
-      where: { employeeName: { contains: name } },
+      where: { employeeName: { contains: name, mode: "insensitive" } },
       orderBy: { requestedAt: "desc" },
       take: 50,
     }),
     prisma.trainingRecord.findMany({
       where: {
-        employeeName: { contains: name },
+        employeeName: { contains: name, mode: "insensitive" },
         trainingStart: { gte: yearStart, lte: yearEnd },
       },
       orderBy: { trainingStart: "desc" },

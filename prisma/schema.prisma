@@ -1,17 +1,16 @@
-// Local dev uses SQLite (file:./dev.db) so the app runs with zero external
-// dependencies. Before deploying to Vercel, switch `provider` to
-// "postgresql" and point DATABASE_URL at your Vercel Postgres / Neon
-// connection string, then run `npx prisma migrate deploy`.
-// Field types below deliberately avoid SQLite-unsupported features
-// (native enums, arrays) so this schema works unchanged on both connectors.
+// Postgres (Neon) — same database for local dev and production.
+// `url` is the pooled connection (used by the app at runtime), `directUrl`
+// is the unpooled connection (used by `prisma migrate` for schema changes,
+// since migrations don't work reliably through a pgbouncer pool).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // ADMIN: full access. SUPERIOR: approves TRFs + does the 3-month rating

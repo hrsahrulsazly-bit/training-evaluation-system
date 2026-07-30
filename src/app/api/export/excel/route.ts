@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
   const records = await prisma.trainingRecord.findMany({
     where: {
-      ...(q ? { employeeName: { contains: q } } : {}),
+      ...(q ? { employeeName: { contains: q, mode: "insensitive" as const } } : {}),
       ...(branch ? { branch } : {}),
       ...(from || to
         ? {

@@ -23,12 +23,13 @@ built with Next.js (App Router), Prisma, and Auth.js.
 
 ## Local development
 
-This runs against **SQLite** locally (zero external dependencies) — see
-"Before deploying to Vercel" below for switching to Postgres.
+This runs against **Postgres on Neon** — the same database used in
+production (connected via the Vercel Neon integration). Local dev and prod
+share one database, so anything you create locally is real data.
 
 ```bash
 npm install
-npx prisma migrate dev   # creates prisma/dev.db
+npx prisma migrate dev   # applies schema to the Neon database in DATABASE_URL
 npm run db:seed          # creates an admin + one sample superior account
 npm run dev
 ```
@@ -56,37 +57,19 @@ See `.env` for local defaults. For production (Vercel), set these in
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Postgres connection string (see below) |
+| `DATABASE_URL` | Postgres (pooled) connection string — auto-set by the Neon Vercel integration |
+| `DATABASE_URL_UNPOOLED` | Postgres (direct) connection string, used for migrations — auto-set by the Neon Vercel integration |
 | `AUTH_SECRET` | Random 32+ char secret — generate with `openssl rand -base64 32` |
 | `GMAIL_USER` | `hr.sahrulsazly@gmail.com` |
 | `GMAIL_APP_PASSWORD` | Gmail **App Password** (Google Account → Security → App Passwords), not your normal password |
 | `APP_BASE_URL` | Your production URL, e.g. `https://training-eval.vercel.app` |
 | `CRON_SECRET` | Random secret — Vercel automatically sends it as `Authorization: Bearer <value>` when calling scheduled cron routes, once set as an env var |
 
-## Before deploying to Vercel
-
-The schema currently targets SQLite for zero-friction local dev. Switch to
-Postgres before your first production deploy:
-
-1. Create a Postgres database (Vercel Postgres, or Neon/Supabase) and grab
-   its connection string.
-2. In `prisma/schema.prisma`, change:
-   ```prisma
-   datasource db {
-     provider = "postgresql"   // was "sqlite"
-     url      = env("DATABASE_URL")
-   }
-   ```
-3. Set `DATABASE_URL` in Vercel to the Postgres connection string.
-4. Run `npx prisma migrate deploy` (locally, pointed at the prod
-   `DATABASE_URL`, or as a Vercel deploy step) to create the tables.
-5. Run `npm run db:seed` once (with `SEED_ADMIN_PASSWORD` set to something
-   real) to create your first admin account — or `npm run db:seed:legacy` to
-   import your existing sheet data.
-
-The daily 3-month-reminder cron is already configured in `vercel.json` and
-will start firing automatically once deployed (requires `CRON_SECRET`,
-`GMAIL_USER`, `GMAIL_APP_PASSWORD`, and `APP_BASE_URL` to be set).
+`DATABASE_URL` and `DATABASE_URL_UNPOOLED` are already set in Vercel via the
+Neon Storage integration. You still need to add `AUTH_SECRET`, `GMAIL_USER`,
+`GMAIL_APP_PASSWORD`, `APP_BASE_URL`, and `CRON_SECRET` manually in
+**Project Settings → Environment Variables** before your first deploy — the
+daily 3-month-reminder cron (`vercel.json`) won't work without them.
 
 ## Tech stack
 
