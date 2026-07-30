@@ -40,6 +40,9 @@ yarn-error.log*
 /prisma/dev.db
 /prisma/dev.db-journal
 
+# real employee data exports — never commit to a public repo
+/legacy-export.csv
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
