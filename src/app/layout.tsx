@@ -41,16 +41,21 @@ export default async function RootLayout({
                 </Link>
               ) : null}
               {session?.user ? (
-                <form
-                  action={async () => {
-                    "use server";
-                    await signOut({ redirectTo: "/" });
-                  }}
-                >
-                  <button className="rounded px-3 py-1.5 bg-red-500/90 hover:bg-red-500">
-                    Logout ({session.user.name})
-                  </button>
-                </form>
+                <>
+                  <Link href="/account/password" className="rounded px-3 py-1.5 hover:bg-white/15">
+                    Tukar Kata Laluan
+                  </Link>
+                  <form
+                    action={async () => {
+                      "use server";
+                      await signOut({ redirectTo: "/" });
+                    }}
+                  >
+                    <button className="rounded px-3 py-1.5 bg-red-500/90 hover:bg-red-500">
+                      Logout ({session.user.name})
+                    </button>
+                  </form>
+                </>
               ) : (
                 <Link
                   href="/login"

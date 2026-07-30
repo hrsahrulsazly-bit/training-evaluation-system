@@ -18,8 +18,15 @@ export default auth((req) => {
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
+
+  if (pathname.startsWith("/account") && !role) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
+  }
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/superior/:path*"],
+  matcher: ["/admin/:path*", "/superior/:path*", "/account/:path*"],
 };
