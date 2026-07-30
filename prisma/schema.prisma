@@ -1,0 +1,138 @@
+// Local dev uses SQLite (file:./dev.db) so the app runs with zero external
+// dependencies. Before deploying to Vercel, switch `provider` to
+// "postgresql" and point DATABASE_URL at your Vercel Postgres / Neon
+// connection string, then run `npx prisma migrate deploy`.
+// Field types below deliberately avoid SQLite-unsupported features
+// (native enums, arrays) so this schema works unchanged on both connectors.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ADMIN: full access. SUPERIOR: approves TRFs + does the 3-month rating
+// for trainings where they are the responsible HOD.
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String // "ADMIN" | "SUPERIOR"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  requestsDecided  TrainingRequest[] @relation("DecidedBy")
+  requestsToApprove TrainingRequest[] @relation("Hod")
+  recordsAsHod     TrainingRecord[]  @relation("RecordHod")
+  recordsEvaluated TrainingRecord[]  @relation("SupEvaluatedBy")
+
+  @@map("users")
+}
+
+model Branch {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("branches")
+}
+
+model Course {
+  id        String   @id @default(cuid())
+  title     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("courses")
+}
+
+model Trainer {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("trainers")
+}
+
+// Training Request Form (TRF) submitted by staff, approved/rejected by
+// their superior. Approval creates a TrainingRecord.
+model TrainingRequest {
+  id             String   @id @default(cuid())
+  employeeName   String
+  position       String
+  branch         String
+  hodId          String
+  hod            User     @relation("Hod", fields: [hodId], references: [id])
+  courseTitle    String
+  trainerName    String?
+  proposedStart  DateTime
+  proposedEnd    DateTime
+  justification  String
+  status         String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  rejectionReason String?
+  requestedAt    DateTime @default(now())
+  decidedAt      DateTime?
+  decidedById    String?
+  decidedBy      User?    @relation("DecidedBy", fields: [decidedById], references: [id])
+
+  record TrainingRecord?
+
+  @@map("training_requests")
+}
+
+// Source of truth once a training is approved (via TRF or HR bulk-add).
+model TrainingRecord {
+  id        String           @id @default(cuid())
+  requestId String?          @unique
+  request   TrainingRequest? @relation(fields: [requestId], references: [id])
+
+  employeeName String
+  position     String
+  branch       String
+  hodId        String
+  hod          User     @relation("RecordHod", fields: [hodId], references: [id])
+  courseTitle  String
+  trainerName  String
+  trainingStart DateTime
+  trainingEnd   DateTime
+  trainingDays  Int
+
+  // Staff rating (shared via unique link after training ends)
+  ratingToken          String    @unique @default(cuid())
+  staffRatingSubmittedAt DateTime?
+  q1Content   String?
+  q2Related   String? // "Yes" | "No"
+  q2Suggestion String?
+  q3Effective String? // "Yes" | "No"
+  q3Further   String?
+  q4Comment   String?
+  q5Importance Int?
+  q6Materials  Int?
+  q7Presenter  Int?
+  q8Adequacy   Int?
+  q9Expectation Int?
+  q10Overall   Int?
+
+  // Superior's 3-month-later effectiveness rating
+  superiorEvaluated  Boolean   @default(false)
+  supQ1 Int?
+  supQ2 Int?
+  supQ3 Int?
+  supQ4 Int?
+  supQ5 Int?
+  supComment      String?
+  supEvaluatedAt  DateTime?
+  supEvaluatedById String?
+  supEvaluatedBy  User? @relation("SupEvaluatedBy", fields: [supEvaluatedById], references: [id])
+
+  reminderDueAt  DateTime
+  reminderSentAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("training_records")
+}
